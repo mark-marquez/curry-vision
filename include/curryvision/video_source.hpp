@@ -14,4 +14,5 @@ class VideoSource {
 
     private:
         cv::VideoCapture video_;
+        
 };
