@@ -1,22 +1,24 @@
 #include <iostream>
-#include <curryvision/video_source.hpp>
+#include <curryvision/video_stream.hpp>
 
 int main() {
-    std::cout << "Hi, Curry Vision here!" << std::endl;
-
-    VideoSource video; 
-
-    if (!video.isOpen()) {
-        return -1; // camera failed to open
+    VideoStream vs;              
+    if (!vs.start()) {
+        std::cerr << "Failed to start VideoStream\n";
+        return 1;
     }
 
-    while (true) {
-        cv::Mat frame = video.grabFrame();
-        if (frame.empty()) break;
-        cv::imshow("Test", frame);
-        if (cv::waitKey(1) == 27) break;
-    }
-    
+    vs.show(true);               
 
+    for (int i = 0; i < 100; ++i) {
+        auto f = vs.get_frame();
+        if (f.width == 0 || f.height == 0) continue;
+        std::cout << "id=" << f.id
+                  << " size=" << f.width << "x" << f.height
+                  << " bytes=" << f.data.size() << "\n";
+    }
+
+    vs.show(false);             
+    vs.stop();
     return 0;
 }
