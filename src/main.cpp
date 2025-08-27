@@ -2,7 +2,7 @@
 #include <curryvision/video_stream.hpp>
 
 int main() {
-    VideoStream vs;              
+    VideoStream vs { 1 };              
     if (!vs.start()) {
         std::cerr << "Failed to start VideoStream\n";
         return 1;
