@@ -1,23 +1,18 @@
 #pragma once
 
 #include <vector>
-#include <types.hpp>
+#include "types.hpp"
+
 
 class BallDetector {
     public:
         explicit BallDetector();
         ~BallDetector();
 
-        bool is_present() const;
+        bool found_ball() const;
 
-        struct Ball {
-            Point center;
-            Point top_left;
-            Point top_right;
-            Point bottom_left;
-            Point bottom_right;
-        };
+        Ball find_ball(Frame& frame);
 
     private:
-
+        bool found_ball_;
 };

@@ -1,5 +1,22 @@
 #pragma once
 
+#include <cstdint>
+#include <vector>
+
+
+struct Frame {
+    uint64_t id;
+    std::uint64_t timestamp_ms;
+    int width;
+    int height;
+    std::vector<unsigned char> data; // raw pixel buffer
+};
+
+struct Ball {
+    Point center;
+    Box bbox; // Bounding Box
+};
+
 
 class Point {
     public:
@@ -15,8 +32,8 @@ class Point {
         float distance_to(const Point& point) const; 
 
     private:
-        int x;
-        int y;
+        int x_;
+        int y_;
 };
 
 
@@ -36,8 +53,8 @@ class Box {
         void set_bottom_right(Point point);
 
     private:
-        Point top_left;
-        Point top_right;
-        Point bottom_left;
-        Point bottom_right;
+        Point top_left_;
+        Point top_right_;
+        Point bottom_left_;
+        Point bottom_right_;
 };

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
+#include "types.hpp"
 
 class VideoStream {
     public:
@@ -12,13 +11,6 @@ class VideoStream {
         void stop();
         bool is_running() const; 
 
-        struct Frame {
-            uint64_t id;
-            std::uint64_t timestamp_ms;
-            int width;
-            int height;
-            std::vector<unsigned char> data; // raw pixel buffer
-        };
         Frame get_frame();
 
         void show(bool enable);
