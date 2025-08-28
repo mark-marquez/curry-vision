@@ -10,5 +10,8 @@ bool BallDetector::found_ball() const {
 }
 
 Ball find_ball(Frame& frame) {
+    // Will use OpenCV's HaughCircles implementation
+    // Will be much more performant than my own implementation
     
+
 }
