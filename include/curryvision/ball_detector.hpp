@@ -1,13 +1,11 @@
 #pragma once
 
-#include <vector>
 #include "types.hpp"
 
 
 class BallDetector {
     public:
         explicit BallDetector();
-        ~BallDetector();
 
         bool found_ball() const;
 
@@ -15,4 +13,5 @@ class BallDetector {
 
     private:
         bool found_ball_;
+
 };

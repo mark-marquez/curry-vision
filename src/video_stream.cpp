@@ -1,8 +1,7 @@
-#include "curryvision/video_stream.hpp"
-
 #include <chrono>
 #include <stdexcept>
 #include <opencv2/opencv.hpp>
+#include "curryvision/video_stream.hpp"
 
 
 cv::VideoCapture capture; 
@@ -49,7 +48,7 @@ void VideoStream::show(bool enable) {
     }
 }
 
-VideoStream::Frame VideoStream::get_frame() {
+Frame VideoStream::get_frame() {
     Frame frame{};
     if (!running_ || !capture.isOpened()) return frame;
 
