@@ -1,6 +1,13 @@
 {
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "files.associations": {
-    "memory": "cpp"
+    "memory": "cpp",
+    "istream": "cpp",
+    "ios": "cpp",
+    "deque": "cpp",
+    "forward_list": "cpp",
+    "list": "cpp",
+    "string": "cpp",
+    "vector": "cpp"
   }
 }

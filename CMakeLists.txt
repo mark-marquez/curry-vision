@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(OpenCV REQUIRED)
 
 add_library(curryvision_core
-  src/video_source.cpp
+  src/video_stream.cpp
   src/ball_detector.cpp
   src/arc_tracker.cpp
 )
