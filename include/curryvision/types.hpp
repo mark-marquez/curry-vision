@@ -5,10 +5,11 @@
 
 
 struct Frame {
-    uint64_t id;
+    std::uint64_t id;
     std::uint64_t timestamp_ms;
     int width;
     int height;
+    int row_stride;
     std::vector<unsigned char> data; // raw pixel buffer
 };
 
