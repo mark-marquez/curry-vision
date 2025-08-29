@@ -31,8 +31,19 @@ Ball find_ball(Frame& frame) {
                      100, 30, 1, 50);
 
     cv::Vec3i circle = circles[0]; 
-    Point center = Point(circle[0], circle[1]);
-    int radius = circle[2]
+    int x = circle[0];
+    int y = circle[1];
+    int radius = circle[2];
+
+    Point top_left = Point(x - radius, y + radius);
+    Point top_right = Point(x + radius, y + radius);
+    Point bottom_left = Point(x - radius, y - radius);
+    Point bottom_right = Point(x + radius, y - radius);
+
+    Box bbox(top_left, top_right, bottom_left, bottom_right);
+    Point bottom_left = Point(x - radius, y - radius);
+    
+
 
 
     

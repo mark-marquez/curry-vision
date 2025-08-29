@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
-
 
 struct Frame {
     std::uint64_t id;
@@ -41,6 +38,7 @@ class Point {
 class Box {
     public:
         Box();
+        Box(int x, int y, int radius);
         Box(Point top_left, Point top_right, Point bottom_left, Point bottom_right);
 
         Point get_top_left() const;
