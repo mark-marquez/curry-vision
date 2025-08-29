@@ -14,10 +14,6 @@ bool BallDetector::found_ball() const {
 }
 
 Ball find_ball(Frame& frame) {
-    // Will use OpenCV's HaughCircles implementation
-    // Will be much more performant than my own implementation
-    Ball ball;
-
     cv::Mat curr(frame.height, frame.width, CV_8UC3,
                 frame.data.data(), frame.row_stride);
 
@@ -35,17 +31,9 @@ Ball find_ball(Frame& frame) {
     int y = circle[1];
     int radius = circle[2];
 
-    Point top_left = Point(x - radius, y + radius);
-    Point top_right = Point(x + radius, y + radius);
-    Point bottom_left = Point(x - radius, y - radius);
-    Point bottom_right = Point(x + radius, y - radius);
+    Point center(x, y);
+    Box bbox(x, y, radius);
+    Ball ball { center, bbox };
 
-    Box bbox(top_left, top_right, bottom_left, bottom_right);
-    Point bottom_left = Point(x - radius, y - radius);
-    
-
-
-
-    
-
+    return ball;
 }

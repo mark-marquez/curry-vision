@@ -43,7 +43,12 @@ class Point {
 class Box {
     public:
         Box();
-        Box(int x, int y, int radius);
+        Box(int x, int y, int radius) {
+            top_left_ = Point(x - radius, y + radius);
+            top_right_ = Point(x + radius, y + radius);
+            bottom_left_ = Point(x - radius, y - radius);
+            bottom_right_ = Point(x + radius, y - radius);
+        }
         Box(Point top_left, Point top_right, Point bottom_left, Point bottom_right) :
         top_left_(top_left), top_right_(top_right), bottom_left_(bottom_left), bottom_right_(bottom_right) {}
 
