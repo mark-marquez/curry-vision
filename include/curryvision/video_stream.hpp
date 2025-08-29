@@ -14,6 +14,7 @@ class VideoStream {
         Frame get_frame();
 
         void show(bool enable);
+        void display(const Frame& frame);
         
 
     private:

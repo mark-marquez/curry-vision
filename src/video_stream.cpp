@@ -66,10 +66,15 @@ Frame VideoStream::get_frame() {
     frame.row_stride = bgr.step;            
     frame.data.assign(bgr.datastart, bgr.dataend);
 
-    if (display_enabled_) {
-        cv::imshow(window_name, bgr);
-        cv::waitKey(1);
-    }
-
     return frame;
+}
+
+void VideoStream::display(const Frame& frame) {
+    if (!display_enabled_) return;
+
+    cv::Mat img(frame.height, frame.width, CV_8UC3,
+                const_cast<unsigned char*>(frame.data.data()), frame.row_stride);
+
+    cv::imshow(window_name, img);
+    cv::waitKey(1);
 }
