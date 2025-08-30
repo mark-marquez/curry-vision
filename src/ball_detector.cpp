@@ -1,5 +1,3 @@
-#pragma once
-
 #include <vector>
 #include "curryvision/ball_detector.hpp"
 #include "opencv2/imgcodecs.hpp"
@@ -13,7 +11,7 @@ bool BallDetector::found_ball() const {
     return found_ball_;
 }
 
-Ball find_ball(Frame& frame) {
+Ball BallDetector::find_ball(Frame& frame) {
     cv::Mat curr(frame.height, frame.width, CV_8UC3,
                 frame.data.data(), frame.row_stride);
 
@@ -24,7 +22,7 @@ Ball find_ball(Frame& frame) {
     std::vector<cv::Vec3f> circles;
     cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1,
                      gray.rows/16,
-                     100, 30, 1, 50);
+                     100, 30, 1, 200);
 
     cv::Vec3i circle = circles[0]; 
     int x = circle[0];
@@ -36,4 +34,25 @@ Ball find_ball(Frame& frame) {
     Ball ball { center, bbox };
 
     return ball;
+}
+
+void BallDetector::draw_ball(Frame& frame, const Ball& ball) {
+    cv::Mat img(frame.height, frame.width, CV_8UC3,
+                frame.data.data(), frame.row_stride);
+
+    // Draw center
+    cv::circle(img,
+               cv::Point(ball.center.get_x(), ball.center.get_y()),
+               3,                   // small radius
+               cv::Scalar(0, 0, 255), // red
+               -1);                 // filled
+
+    // Draw bounding box as rectangle (top-left to bottom-right)
+    cv::rectangle(img,
+                  cv::Point(ball.bbox.get_top_left().get_x(),
+                            ball.bbox.get_top_left().get_y()),
+                  cv::Point(ball.bbox.get_bottom_right().get_x(),
+                            ball.bbox.get_bottom_right().get_y()),
+                  cv::Scalar(0, 255, 0), // green
+                  2);                    // line thickness
 }

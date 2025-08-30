@@ -10,11 +10,6 @@ struct Frame {
     std::vector<unsigned char> data; // raw pixel buffer
 };
 
-struct Ball {
-    Point center;
-    Box bbox; // Bounding Box
-};
-
 
 class Point {
     public:
@@ -56,4 +51,10 @@ class Box {
         Point top_right_;
         Point bottom_left_;
         Point bottom_right_;
+};
+
+
+struct Ball {
+    Point center;
+    Box bbox; // Bounding Box
 };

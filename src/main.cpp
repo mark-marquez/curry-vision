@@ -13,14 +13,13 @@ int main() {
 
     stream.show(true);               
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         Frame frame = stream.get_frame();
         if (frame.width == 0 || frame.height == 0) continue;
         Ball ball = detector.find_ball(frame);
-        if (detector.found_ball()) {
-            
-        }
-
+        detector.draw_ball(frame, ball);
+        stream.display(frame);
+        
         std::cout << "id=" << frame.id
                   << " size=" << frame.width << "x" << frame.height
                   << " bytes=" << frame.data.size() << "\n";

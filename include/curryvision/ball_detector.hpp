@@ -11,6 +11,8 @@ class BallDetector {
 
         Ball find_ball(Frame& frame);
 
+        void draw_ball(Frame& frame, const Ball& ball);
+
     private:
         bool found_ball_;
 
