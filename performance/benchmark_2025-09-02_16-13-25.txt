@@ -1,0 +1,4 @@
+
+=== Benchmark ===
+Frames measured : 100
+Avg runtime     : 2769 ms per frame
