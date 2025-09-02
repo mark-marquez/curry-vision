@@ -12,6 +12,7 @@ add_library(curryvision_core
   src/video_stream.cpp
   src/ball_detector.cpp
   src/arc_tracker.cpp
+  src/types.cpp
 )
 target_include_directories(curryvision_core PUBLIC include)
 target_link_libraries(curryvision_core PUBLIC ${OpenCV_LIBS})

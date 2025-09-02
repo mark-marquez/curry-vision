@@ -1,24 +1,32 @@
 #include <iostream>
 #include <curryvision/video_stream.hpp>
+#include <curryvision/ball_detector.hpp>
 
 int main() {
-    VideoStream vs { 1 };              
-    if (!vs.start()) {
+    VideoStream stream { 1 };       
+    BallDetector detector {};      
+
+    if (!stream.start()) {
         std::cerr << "Failed to start VideoStream\n";
         return 1;
     }
 
-    vs.show(true);               
+    stream.show(true);               
 
-    for (int i = 0; i < 100; ++i) {
-        auto f = vs.get_frame();
-        if (f.width == 0 || f.height == 0) continue;
-        std::cout << "id=" << f.id
-                  << " size=" << f.width << "x" << f.height
-                  << " bytes=" << f.data.size() << "\n";
+    for (int i = 0; i < 1000; ++i) {
+        Frame frame = stream.get_frame();
+        if (frame.width == 0 || frame.height == 0) continue;
+        Ball ball = detector.find_ball(frame);
+        detector.draw_ball(frame, ball);
+        stream.display(frame);
+        
+        std::cout << "id=" << frame.id
+                  << " size=" << frame.width << "x" << frame.height
+                  << " bytes=" << frame.data.size() << "\n";
+        
     }
 
-    vs.show(false);             
-    vs.stop();
+    stream.show(false);             
+    stream.stop();
     return 0;
 }

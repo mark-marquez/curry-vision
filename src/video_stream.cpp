@@ -1,8 +1,7 @@
-#include "curryvision/video_stream.hpp"
-
 #include <chrono>
 #include <stdexcept>
 #include <opencv2/opencv.hpp>
+#include "curryvision/video_stream.hpp"
 
 
 cv::VideoCapture capture; 
@@ -49,30 +48,33 @@ void VideoStream::show(bool enable) {
     }
 }
 
-VideoStream::Frame VideoStream::get_frame() {
+Frame VideoStream::get_frame() {
     Frame frame{};
     if (!running_ || !capture.isOpened()) return frame;
 
     cv::Mat bgr;
     if (!capture.read(bgr) || bgr.empty()) return frame;
 
-    cv::Mat rgb;
-    cv::cvtColor(bgr, rgb, cv::COLOR_BGR2RGB);
-
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                   std::chrono::steady_clock::now().time_since_epoch())
                   .count();
 
     frame.id = ++frame_counter_;
     frame.timestamp_ms = static_cast<std::uint64_t>(ms);
-    frame.width = rgb.cols;
-    frame.height = rgb.rows;
-    frame.data.assign(rgb.datastart, rgb.dataend);
-
-    if (display_enabled_) {
-        cv::imshow(window_name, bgr);
-        cv::waitKey(1);
-    }
+    frame.width = bgr.cols;
+    frame.height = bgr.rows;
+    frame.row_stride = bgr.step;            
+    frame.data.assign(bgr.datastart, bgr.dataend);
 
     return frame;
+}
+
+void VideoStream::display(const Frame& frame) {
+    if (!display_enabled_) return;
+
+    cv::Mat img(frame.height, frame.width, CV_8UC3,
+                const_cast<unsigned char*>(frame.data.data()), frame.row_stride);
+
+    cv::imshow(window_name, img);
+    cv::waitKey(1);
 }
