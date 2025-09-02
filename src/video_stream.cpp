@@ -5,12 +5,16 @@
 
 
 cv::VideoCapture capture; 
-int camera_index; 
+int camera_index;
+int width; 
+int height;
 const std::string window_name = "CurryVision";
 
 
-VideoStream::VideoStream(int cam_idx) : running_(false), display_enabled_(false), frame_counter_(0) {
+VideoStream::VideoStream(int cam_idx, int resolution) : running_(false), display_enabled_(false), frame_counter_(0) {
     camera_index = cam_idx; 
+    width = VideoStream::widths[resolution];
+    height = VideoStream::heights[resolution];
 }
 
 VideoStream::~VideoStream() {
@@ -20,6 +24,8 @@ VideoStream::~VideoStream() {
 bool VideoStream::start() {
     if (running_) return true;
     if (!capture.open(camera_index)) return false;
+    capture.set(cv::CAP_PROP_FRAME_WIDTH,  width);
+    capture.set(cv::CAP_PROP_FRAME_HEIGHT, height);
     running_ = true;
     return true;
 }

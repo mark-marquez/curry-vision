@@ -25,7 +25,7 @@ int main() {
     constexpr int CAMERA_INDEX = 1;
     constexpr int NUM_FRAMES = 100;
 
-    VideoStream stream { CAMERA_INDEX };       
+    VideoStream stream { CAMERA_INDEX, VideoStream::VGA };       
     BallDetector detector {};      
 
     if (!stream.start()) {
