@@ -23,9 +23,9 @@ std::string get_timestamp() {
 
 int main() {
     constexpr int CAMERA_INDEX = 1;
-    constexpr int NUM_FRAMES = 100;
+    constexpr int NUM_FRAMES = 1000;
 
-    VideoStream stream { CAMERA_INDEX, VideoStream::VGA };       
+    VideoStream stream { CAMERA_INDEX, VGA };       
     BallDetector detector {};      
 
     if (!stream.start()) {

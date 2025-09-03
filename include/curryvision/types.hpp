@@ -1,5 +1,12 @@
 #pragma once
 
+static constexpr int QVGA = 0;
+static constexpr int VGA = 1; 
+static constexpr int HD = 2;
+static constexpr int FULLHD = 3;
+
+const std::vector<int> widths = {320, 640, 1280, 1920};
+const std::vector<int> heights = {240, 480, 720, 1080};
 
 struct Frame {
     std::uint64_t id;
