@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <thread>
-#include<curryvision/types.hpp>
+#include <curryvision/types.hpp>
 #include <curryvision/video_stream.hpp>
 #include <curryvision/ball_detector.hpp>
 
@@ -57,14 +57,11 @@ int main() {
     auto start = SteadyClock::now();
     for (int i = 0; i < NUM_FRAMES; ++i) {
         Frame frame = stream.get_frame();
-        if (frame.width == 0 || frame.height == 0 || frame.data.empty()) {
-            continue;
-        }
+        if (frame.width == 0 || frame.height == 0 || frame.data.empty()) continue;
 
         latest.set_frame(frame);
-        if (auto b = latest.try_get_ball()) {
-            detector.draw_ball(frame, *b);
-        }
+        if (auto b = latest.try_get_ball()) detector.draw_ball(frame, *b);
+
         stream.display(frame);
     }
     long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(SteadyClock::now() - start).count()) / 1000;

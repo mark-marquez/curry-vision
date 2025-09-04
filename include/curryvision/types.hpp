@@ -3,8 +3,9 @@
 #include <queue>
 #include <mutex>
 #include <optional>
-#include <atomic>
+#include <chrono>
 #include <condition_variable>
+
 
 static constexpr int QVGA = 0;
 static constexpr int VGA = 1; 
@@ -99,6 +100,8 @@ private:
 
     std::optional<Frame> latest_frame_;
     std::optional<Ball>  latest_ball_;
+    std::chrono::steady_clock::time_point latest_ball_ts_{};
+    static constexpr std::chrono::milliseconds BALL_TTL{200};
 
     bool stop_ = false;
 };

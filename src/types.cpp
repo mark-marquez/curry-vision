@@ -102,7 +102,7 @@ void LatestFrame::set_frame(Frame f) {
 std::optional<Frame> LatestFrame::get_frame() {
     std::unique_lock<std::mutex> lock(m_);
     cv_.wait(lock, [this]{
-        return latest_frame_.has_value() || stop_ == true;
+        return latest_frame_.has_value() || stop_;
     });
 
     if (!latest_frame_) {
@@ -115,23 +115,26 @@ std::optional<Frame> LatestFrame::get_frame() {
 }
 
 void LatestFrame::set_ball(Ball b) {
-    {
-        std::lock_guard<std::mutex> lock(m_);
-        latest_ball_ = std::move(b);
-    }
-    cv_.notify_one();
+    std::lock_guard<std::mutex> lock(m_);
+    latest_ball_ = std::move(b);
+    latest_ball_ts_ = std::chrono::steady_clock::now();
 }
 
 std::optional<Ball> LatestFrame::try_get_ball() {
     std::lock_guard<std::mutex> lock(m_);
     if (!latest_ball_) return std::nullopt;
-    auto out = std::move(*latest_ball_);
-    latest_ball_.reset();
-    return out;
+
+    auto now = std::chrono::steady_clock::now();
+    if (now - latest_ball_ts_ > BALL_TTL) {
+        latest_ball_.reset();
+        latest_ball_ts_ = {};
+        return std::nullopt;
+    }
+    return *latest_ball_;
 }
 
 void LatestFrame::stop() {
     std::lock_guard<std::mutex> lock(m_);
     stop_ = true;
-    cv_.notify_all();
+    cv_.notify_one();
 }
