@@ -1,8 +1,8 @@
 #include <cstdint>
 #include <vector>
 #include <cmath>
+#include <utility>
 #include <curryvision/types.hpp>
-
 
 
 Point::Point() {}
@@ -91,18 +91,50 @@ bool FrameQueue::empty() const {
 }
 
 
-void LatestFrame::set(Frame f) {
+void LatestFrame::set_frame(Frame f) {
     {
         std::lock_guard<std::mutex> lock(m_);
-        latest_ = std::move(f);
-        has_frame_ = true;
+        latest_frame_ = std::move(f);
     }
     cv_.notify_one();
 }
 
-Frame LatestFrame::get() {
+std::optional<Frame> LatestFrame::get_frame() {
     std::unique_lock<std::mutex> lock(m_);
-    cv_.wait(lock, [this]{ return has_frame_; });
-    has_frame_ = false;
-    return std::move(latest_);
+    cv_.wait(lock, [this]{
+        return latest_frame_.has_value() || stop_.load(std::memory_order_acquire);
+    });
+
+    if (!latest_frame_) {
+        return std::nullopt;
+    }
+
+    auto out = std::move(*latest_frame_);
+    latest_frame_.reset();
+    return out;
+}
+
+void LatestFrame::set_ball(Ball b) {
+    {
+        std::lock_guard<std::mutex> lock(m_);
+        latest_ball_ = std::move(b);
+    }
+    cv_.notify_one();
+}
+
+std::optional<Ball> LatestFrame::try_get_ball() {
+    std::lock_guard<std::mutex> lock(m_);
+    if (!latest_ball_) return std::nullopt;
+    auto out = std::move(*latest_ball_);
+    latest_ball_.reset();
+    return out;
+}
+
+void LatestFrame::stop() {
+    stop_.store(true, std::memory_order_release);
+    cv_.notify_all();
+}
+
+bool LatestFrame::stopped() const noexcept {
+    return stop_.load(std::memory_order_acquire);
 }

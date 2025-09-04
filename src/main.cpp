@@ -23,10 +23,20 @@ std::string get_timestamp() {
     return timestamp;
 }
 
+void save_benchmark(int num_frames, int total_time_secs) {
+    std::string file_name = "benchmark_" + get_timestamp() + ".txt";
+    std::ofstream out(file_name);
+    if (out) {
+        out << "\n=== Benchmark ===\n"
+            << "Frames measured      : " << num_frames << "\n"
+            << "Roughly processed FPS: " << num_frames / total_time_secs << " frames per second\n";
+    }
+}
+
 
 int main() {
     constexpr int CAMERA_INDEX = 1;
-    constexpr int NUM_FRAMES = 100;
+    constexpr int NUM_FRAMES = 200;
 
     VideoStream stream { CAMERA_INDEX, VGA };       
     BallDetector detector {};      
@@ -36,52 +46,36 @@ int main() {
         return 1;
     }
     stream.show(true);
-    FrameQueue frames;
+    LatestFrame latest;
 
-    std::thread capture([&]{
-    for (int i = 0; i < NUM_FRAMES; ++i) {
-            Frame f = stream.get_frame();
-            if (f.width == 0 || f.height == 0) { --i; continue; } // keep count to NUM_FRAMES valid frames
-            frames.push(std::move(f));
+    std::thread find([&]{
+        while (auto f = latest.get_frame()) { 
+            auto ball = detector.find_ball(*f); 
+            latest.set_ball(std::move(ball)); 
         }
     });
-
-                 
+     
     using clock = std::chrono::steady_clock;  
     using milliseconds = std::chrono::milliseconds;
-    long long running_sum = 0;
 
     auto start = clock::now();
     for (int i = 0; i < NUM_FRAMES; ++i) {
-        Frame frame = frames.pop();
+        Frame frame = stream.get_frame();
+        if (frame.width == 0 || frame.height == 0 || frame.data.empty()) {
+            continue;
+        }
 
-        auto find_ball_start = clock::now();
-        Ball ball = detector.find_ball(frame);
-        auto find_ball_end = clock::now();
-        running_sum += std::chrono::duration_cast<std::chrono::milliseconds>(find_ball_end - find_ball_start).count();
-
-        detector.draw_ball(frame, ball);
+        latest.set_frame(frame);
+        if (auto b = latest.try_get_ball()) {
+            detector.draw_ball(frame, *b);
+        }
         stream.display(frame);
-        
-        std::cout << "id=" << frame.id
-                  << " size=" << frame.width << "x" << frame.height
-                  << " bytes=" << frame.data.size() << "\n";
-        
     }
     long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - start).count()) / 1000;
-
-    if (capture.joinable()) capture.join();
+    latest.stop();
+    if (find.joinable()) find.join();
     stream.show(false);             
     stream.stop();
-
-    double average = (running_sum / NUM_FRAMES);
-    std::string file_name = "benchmark_" + get_timestamp() + ".txt";
-    std::ofstream out(file_name);
-    if (out) {
-        out << "\n=== Benchmark ===\n"
-            << "Frames measured      : " << NUM_FRAMES << "\n"
-            << "Avg runtime find_ball: " << average << " ms per frame\n"
-            << "Roughly processed FPS: " << NUM_FRAMES / total_time_secs << " frames per second\n";
-    }
+    save_benchmark(NUM_FRAMES, total_time_secs);
     return 0;
 }

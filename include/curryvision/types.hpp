@@ -2,6 +2,8 @@
 
 #include <queue>
 #include <mutex>
+#include <optional>
+#include <atomic>
 #include <condition_variable>
 
 static constexpr int QVGA = 0;
@@ -64,12 +66,10 @@ class Box {
         Point bottom_right_;
 };
 
-
 struct Ball {
     Point center;
     Box bbox; // Bounding Box
 };
-
 
 class FrameQueue { // Producer & consumer pattern
 public:
@@ -86,12 +86,21 @@ private:
 
 class LatestFrame {
 public:
-    void set(Frame f);   // producer stores a new frame
-    Frame get();         // consumer waits and retrieves the latest
+    void set_frame(Frame f);
+    std::optional<Frame> get_frame();
+    void set_ball(Ball b);
+
+    std::optional<Ball> try_get_ball();
+
+    void stop();
+    bool stopped() const noexcept;
 
 private:
-    Frame latest_;
     std::mutex m_;
     std::condition_variable cv_;
-    bool has_frame_ = false;
+
+    std::optional<Frame> latest_frame_;
+    std::optional<Ball>  latest_ball_;
+
+    std::atomic<bool> stop_{false};
 };
