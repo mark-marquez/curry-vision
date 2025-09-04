@@ -15,17 +15,17 @@ Ball BallDetector::find_ball(Frame& frame) {
     cv::Mat curr(frame.height, frame.width, CV_8UC3,
                 frame.data.data(), frame.row_stride);
     
-    int width = widths[VGA];
-    int height = heights[VGA];
-    double scale_x = static_cast<double>(frame.width)  / width;
-    double scale_y = static_cast<double>(frame.height) / height;
+    // int width = widths[VGA];
+    // int height = heights[VGA];
+    // double scale_x = static_cast<double>(frame.width)  / width;
+    // double scale_y = static_cast<double>(frame.height) / height;
 
-    cv::Mat resized;
-    cv::resize(curr, resized,
-               cv::Size(widths[VGA], heights[VGA]));
+    // cv::Mat resized;
+    // cv::resize(curr, resized,
+    //            cv::Size(widths[VGA], heights[VGA]));
 
     cv::Mat gray;
-    cv::cvtColor(resized, gray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(curr, gray, cv::COLOR_BGR2GRAY);
     cv::medianBlur(gray, gray, 5);
 
     std::vector<cv::Vec3f> circles;
@@ -34,9 +34,12 @@ Ball BallDetector::find_ball(Frame& frame) {
                      100, 30, 1, 200);
 
     cv::Vec3i circle = circles[0]; 
-    int x = static_cast<int>(circle[0] * scale_x);
-    int y = static_cast<int>(circle[1] * scale_y);
-    int radius = static_cast<int>(circle[2] * (scale_x + scale_y) / 2.0);
+    int x = circle[0];
+    int y = circle[1];
+    int radius = circle[2];
+    // int x = static_cast<int>(circle[0] * scale_x);
+    // int y = static_cast<int>(circle[1] * scale_y);
+    // int radius = static_cast<int>(circle[2] * (scale_x + scale_y) / 2.0);
 
     Point center(x, y);
     Box bbox(x, y, radius);
