@@ -40,6 +40,7 @@ int main() {
 
     auto start = clock::now();
     for (int i = 0; i < NUM_FRAMES; ++i) {
+        
         Frame frame = stream.get_frame();
         if (frame.width == 0 || frame.height == 0) continue;
 

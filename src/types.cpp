@@ -67,3 +67,25 @@ void Box::set_bottom_left(Point point) {
 void Box::set_bottom_right(Point point) {
     bottom_right_ = point; 
 }
+
+
+void FrameQueue::push(Frame frame) {
+    {
+        std::lock_guard<std::mutex> lock(m_); // automatically releases mutex
+        q_.push(std::move(frame)); // pointer swap
+    }
+    cv_.notify_one();
+}
+
+Frame FrameQueue::pop() {
+    std::unique_lock<std::mutex> lock(m_); // required to use wait
+    cv_.wait(lock, [this]{ return !q_.empty(); }); // sleep until notified & queue has a frame
+    Frame frame = std::move(q_.front());
+    q_.pop();
+    return frame;
+}
+
+bool FrameQueue::empty() const {
+    std::lock_guard<std::mutex> lock(m_); // automatically releases mutex
+    return q_.empty();
+}

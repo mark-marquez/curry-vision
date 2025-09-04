@@ -1,5 +1,9 @@
 #pragma once
 
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+
 static constexpr int QVGA = 0;
 static constexpr int VGA = 1; 
 static constexpr int HD = 2;
@@ -64,4 +68,17 @@ class Box {
 struct Ball {
     Point center;
     Box bbox; // Bounding Box
+};
+
+
+class FrameQueue { // Producer & consumer pattern
+public:
+    void push(Frame frame);
+    Frame pop();
+    bool empty() const;
+
+private:
+    mutable std::mutex m_;
+    std::queue<Frame> q_;
+    std::condition_variable cv_;
 };
