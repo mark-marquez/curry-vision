@@ -89,3 +89,20 @@ bool FrameQueue::empty() const {
     std::lock_guard<std::mutex> lock(m_); // automatically releases mutex
     return q_.empty();
 }
+
+
+void LatestFrame::set(Frame f) {
+    {
+        std::lock_guard<std::mutex> lock(m_);
+        latest_ = std::move(f);
+        has_frame_ = true;
+    }
+    cv_.notify_one();
+}
+
+Frame LatestFrame::get() {
+    std::unique_lock<std::mutex> lock(m_);
+    cv_.wait(lock, [this]{ return has_frame_; });
+    has_frame_ = false;
+    return std::move(latest_);
+}

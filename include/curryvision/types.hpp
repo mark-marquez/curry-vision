@@ -82,3 +82,16 @@ private:
     std::queue<Frame> q_;
     std::condition_variable cv_;
 };
+
+
+class LatestFrame {
+public:
+    void set(Frame f);   // producer stores a new frame
+    Frame get();         // consumer waits and retrieves the latest
+
+private:
+    Frame latest_;
+    std::mutex m_;
+    std::condition_variable cv_;
+    bool has_frame_ = false;
+};

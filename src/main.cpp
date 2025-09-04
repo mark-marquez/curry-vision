@@ -4,8 +4,11 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <thread>
+#include<curryvision/types.hpp>
 #include <curryvision/video_stream.hpp>
 #include <curryvision/ball_detector.hpp>
+
 
 std::string get_timestamp() {
     // Current time
@@ -32,17 +35,25 @@ int main() {
         std::cerr << "Failed to start VideoStream\n";
         return 1;
     }
+    stream.show(true);
+    FrameQueue frames;
 
-    stream.show(true);             
+    std::thread capture([&]{
+    for (int i = 0; i < NUM_FRAMES; ++i) {
+            Frame f = stream.get_frame();
+            if (f.width == 0 || f.height == 0) { --i; continue; } // keep count to NUM_FRAMES valid frames
+            frames.push(std::move(f));
+        }
+    });
+
+                 
     using clock = std::chrono::steady_clock;  
     using milliseconds = std::chrono::milliseconds;
     long long running_sum = 0;
 
     auto start = clock::now();
     for (int i = 0; i < NUM_FRAMES; ++i) {
-        
-        Frame frame = stream.get_frame();
-        if (frame.width == 0 || frame.height == 0) continue;
+        Frame frame = frames.pop();
 
         auto find_ball_start = clock::now();
         Ball ball = detector.find_ball(frame);
@@ -59,6 +70,7 @@ int main() {
     }
     long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - start).count()) / 1000;
 
+    if (capture.joinable()) capture.join();
     stream.show(false);             
     stream.stop();
 

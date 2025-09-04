@@ -1,0 +1,5 @@
+
+=== Benchmark ===
+Frames measured      : 100
+Avg runtime find_ball: 63 ms per frame
+Roughly processed FPS: 14 frames per second
