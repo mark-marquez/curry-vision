@@ -89,7 +89,6 @@ public:
     void set_frame(Frame f);
     std::optional<Frame> get_frame();
     void set_ball(Ball b);
-
     std::optional<Ball> try_get_ball();
 
     void stop();
