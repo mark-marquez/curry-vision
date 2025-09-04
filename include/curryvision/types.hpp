@@ -84,7 +84,7 @@ private:
 };
 
 
-class LatestFrame {
+class LatestFrame { // Simpler producer & consumer pattern 
 public:
     void set_frame(Frame f);
     std::optional<Frame> get_frame();
@@ -92,7 +92,6 @@ public:
     std::optional<Ball> try_get_ball();
 
     void stop();
-    bool stopped() const noexcept;
 
 private:
     std::mutex m_;
@@ -101,5 +100,5 @@ private:
     std::optional<Frame> latest_frame_;
     std::optional<Ball>  latest_ball_;
 
-    std::atomic<bool> stop_{false};
+    bool stop_ = false;
 };

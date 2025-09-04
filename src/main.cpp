@@ -10,6 +10,12 @@
 #include <curryvision/ball_detector.hpp>
 
 
+using SteadyClock = std::chrono::steady_clock;  
+using milliseconds = std::chrono::milliseconds;
+
+constexpr int CAMERA_INDEX = 1;
+constexpr int NUM_FRAMES = 200;
+
 std::string get_timestamp() {
     // Current time
     std::time_t now = std::time(nullptr);
@@ -35,18 +41,11 @@ void save_benchmark(int num_frames, int total_time_secs) {
 
 
 int main() {
-    constexpr int CAMERA_INDEX = 1;
-    constexpr int NUM_FRAMES = 200;
-
     VideoStream stream { CAMERA_INDEX, VGA };       
     BallDetector detector {};      
-
-    if (!stream.start()) {
-        std::cerr << "Failed to start VideoStream\n";
-        return 1;
-    }
-    stream.show(true);
     LatestFrame latest;
+    stream.start();
+    stream.show(true);
 
     std::thread find([&]{
         while (auto f = latest.get_frame()) { 
@@ -54,11 +53,8 @@ int main() {
             latest.set_ball(std::move(ball)); 
         }
     });
-     
-    using clock = std::chrono::steady_clock;  
-    using milliseconds = std::chrono::milliseconds;
 
-    auto start = clock::now();
+    auto start = SteadyClock::now();
     for (int i = 0; i < NUM_FRAMES; ++i) {
         Frame frame = stream.get_frame();
         if (frame.width == 0 || frame.height == 0 || frame.data.empty()) {
@@ -71,7 +67,7 @@ int main() {
         }
         stream.display(frame);
     }
-    long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - start).count()) / 1000;
+    long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(SteadyClock::now() - start).count()) / 1000;
     latest.stop();
     if (find.joinable()) find.join();
     stream.show(false);             

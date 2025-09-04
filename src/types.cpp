@@ -102,7 +102,7 @@ void LatestFrame::set_frame(Frame f) {
 std::optional<Frame> LatestFrame::get_frame() {
     std::unique_lock<std::mutex> lock(m_);
     cv_.wait(lock, [this]{
-        return latest_frame_.has_value() || stop_.load(std::memory_order_acquire);
+        return latest_frame_.has_value() || stop_ == true;
     });
 
     if (!latest_frame_) {
@@ -131,10 +131,7 @@ std::optional<Ball> LatestFrame::try_get_ball() {
 }
 
 void LatestFrame::stop() {
-    stop_.store(true, std::memory_order_release);
+    std::lock_guard<std::mutex> lock(m_);
+    stop_ = true;
     cv_.notify_all();
-}
-
-bool LatestFrame::stopped() const noexcept {
-    return stop_.load(std::memory_order_acquire);
 }
