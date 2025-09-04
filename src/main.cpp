@@ -23,7 +23,7 @@ std::string get_timestamp() {
 
 int main() {
     constexpr int CAMERA_INDEX = 1;
-    constexpr int NUM_FRAMES = 1000;
+    constexpr int NUM_FRAMES = 100;
 
     VideoStream stream { CAMERA_INDEX, VGA };       
     BallDetector detector {};      
@@ -38,14 +38,15 @@ int main() {
     using milliseconds = std::chrono::milliseconds;
     long long running_sum = 0;
 
+    auto start = clock::now();
     for (int i = 0; i < NUM_FRAMES; ++i) {
         Frame frame = stream.get_frame();
         if (frame.width == 0 || frame.height == 0) continue;
 
-        auto start = clock::now();
+        auto find_ball_start = clock::now();
         Ball ball = detector.find_ball(frame);
-        auto end = clock::now();
-        running_sum += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        auto find_ball_end = clock::now();
+        running_sum += std::chrono::duration_cast<std::chrono::milliseconds>(find_ball_end - find_ball_start).count();
 
         detector.draw_ball(frame, ball);
         stream.display(frame);
@@ -55,6 +56,7 @@ int main() {
                   << " bytes=" << frame.data.size() << "\n";
         
     }
+    long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - start).count()) / 1000;
 
     stream.show(false);             
     stream.stop();
@@ -65,8 +67,8 @@ int main() {
     if (out) {
         out << "\n=== Benchmark ===\n"
             << "Frames measured      : " << NUM_FRAMES << "\n"
-            << "Avg runtime find_ball: " << average << " ms per frame\n";
-
+            << "Avg runtime find_ball: " << average << " ms per frame\n"
+            << "Roughly processed FPS: " << NUM_FRAMES / total_time_secs << " frames per second\n";
     }
     return 0;
 }
