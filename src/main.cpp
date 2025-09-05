@@ -39,7 +39,29 @@ void save_benchmark(int num_frames, int total_time_secs) {
     }
 }
 
+int main() {
+    VideoStream stream { CAMERA_INDEX, VGA };       
+    BallDetector detector {};      
+    stream.start();
+    stream.show(true);
 
+    auto start = SteadyClock::now();
+    for (int i = 0; i < NUM_FRAMES; ++i) {
+        Frame frame = stream.get_frame();
+        if (frame.width == 0 || frame.height == 0 || frame.data.empty()) continue;
+        Ball b = detector.find_ball(frame);
+        detector.draw_ball(frame, b);
+        stream.display(frame);
+    }
+    long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(SteadyClock::now() - start).count()) / 1000;
+    stream.show(false);             
+    stream.stop();
+    save_benchmark(NUM_FRAMES, total_time_secs);
+    return 0;
+}
+
+
+// DEPRACATED TWO THREAD LOGIC
 // int main() {
 //     VideoStream stream { CAMERA_INDEX, VGA };       
 //     BallDetector detector {};      
@@ -72,24 +94,3 @@ void save_benchmark(int num_frames, int total_time_secs) {
 //     save_benchmark(NUM_FRAMES, total_time_secs);
 //     return 0;
 // }
-
-int main() {
-    VideoStream stream { CAMERA_INDEX, VGA };       
-    BallDetector detector {};      
-    stream.start();
-    stream.show(true);
-
-    auto start = SteadyClock::now();
-    for (int i = 0; i < NUM_FRAMES; ++i) {
-        Frame frame = stream.get_frame();
-        if (frame.width == 0 || frame.height == 0 || frame.data.empty()) continue;
-        Ball b = detector.find_ball(frame);
-        detector.draw_ball(frame, b);
-        stream.display(frame);
-    }
-    long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(SteadyClock::now() - start).count()) / 1000;
-    stream.show(false);             
-    stream.stop();
-    save_benchmark(NUM_FRAMES, total_time_secs);
-    return 0;
-}

@@ -11,7 +11,49 @@ bool BallDetector::found_ball() const {
     return found_ball_;
 }
 
+
+
 Ball BallDetector::find_ball(Frame& frame) {
+    if (frame.width == 0 || frame.height == 0 || frame.data.empty()) {
+        return Ball{ Point(0,0), Box(0,0,0) };
+    }
+
+    cv::Mat curr(frame.height, frame.width, CV_8UC3,
+                 frame.data.data(), frame.row_stride);
+
+    cv::Mat blurred; 
+    cv::GaussianBlur(curr, blurred, cv::Size(11, 11), 0);
+
+    cv::Mat hsv;
+    cv::cvtColor(blurred, hsv, cv::COLOR_BGR2HSV);
+
+    cv::Mat mask;
+    cv::inRange(hsv, cv::Scalar(5, 120, 120), cv::Scalar(25, 255, 255), mask);
+    cv::erode(mask, mask, cv::Mat(), cv::Point(-1,-1), 2);
+    cv::dilate(mask, mask, cv::Mat(), cv::Point(-1,-1), 2);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    if (contours.empty()) return Ball{ Point(0,0), Box(0,0,0) };
+
+    auto& c = *std::max_element(contours.begin(), contours.end(),
+        [](const auto& a, const auto& b){ return cv::contourArea(a) < cv::contourArea(b); });
+
+    cv::Point2f ctr; 
+    float r;
+    cv::minEnclosingCircle(c, ctr, r);
+
+    if (r <= 10) return Ball{ Point(0,0), Box(0,0,0) };
+
+    Point center((int)ctr.x, (int)ctr.y);
+    Box box(center.get_x(), center.get_y(), (int)r);
+    return Ball{ center, box };
+}
+
+
+
+// One further post processing idea is to calculate ROI using the last_center
+Ball BallDetector::find_ball_with_smoothing(Frame& frame) {
     if (frame.width == 0 || frame.height == 0 || frame.data.empty()) {
         return Ball{ Point(0,0), Box(0,0,0) };
     }
@@ -21,6 +63,7 @@ Ball BallDetector::find_ball(Frame& frame) {
     cv::GaussianBlur(curr, blur, cv::Size(11, 11), 0);
     cv::Mat hsv;
     cv::cvtColor(blur, hsv, cv::COLOR_BGR2HSV);
+    
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(5, 120, 120), cv::Scalar(25, 255, 255), mask);
     cv::erode(mask, mask, cv::Mat(), cv::Point(-1,-1), 1);
@@ -35,8 +78,24 @@ Ball BallDetector::find_ball(Frame& frame) {
 
     cv::Point2f ctr; float r;
     cv::minEnclosingCircle(c, ctr, r);
+    if (r < 20 || r > 200) { // reject implausible sizes
+        return Ball{ Point(0,0), Box(0,0,0) };
+    } 
 
-    return Ball{ Point((int)ctr.x, (int)ctr.y), Box((int)ctr.x, (int)ctr.y, (int)r) };
+    float alpha = 0.7f;
+    Point curr_center((int)ctr.x, (int)ctr.y);
+
+    if (!(last_center.get_x() == 0 && last_center.get_y() == 0)) {
+        int smoothed_x = static_cast<int>(alpha * curr_center.get_x() +
+                                        (1 - alpha) * last_center.get_x());
+        int smoothed_y = static_cast<int>(alpha * curr_center.get_y() +
+                                        (1 - alpha) * last_center.get_y());
+        curr_center = Point(smoothed_x, smoothed_y);
+    }
+
+    last_center = curr_center;
+    Box box(curr_center.get_x(), curr_center.get_y(), static_cast<int>(r));
+    return Ball{ curr_center, box };
 
 }
 

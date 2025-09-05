@@ -1,0 +1,4 @@
+
+=== Benchmark ===
+Frames measured      : 500
+Roughly processed FPS: 31 frames per second
