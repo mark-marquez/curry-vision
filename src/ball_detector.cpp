@@ -12,17 +12,37 @@ bool BallDetector::found_ball() const {
 }
 
 Ball BallDetector::find_ball(Frame& frame) {
+    if (frame.width == 0 || frame.height == 0 || frame.data.empty()) {
+        return Ball{ Point(0,0), Box(0,0,0) };
+    }
+    cv::Mat curr(frame.height, frame.width, CV_8UC3,
+            frame.data.data(), frame.row_stride);
+    cv::Mat blur;
+    cv::GaussianBlur(curr, blur, cv::Size(11, 11), 0);
+    cv::Mat hsv;
+    cv::cvtColor(blur, hsv, cv::COLOR_BGR2HSV);
+    cv::Mat mask;
+    cv::inRange(hsv, cv::Scalar(5, 120, 120), cv::Scalar(25, 255, 255), mask);
+    cv::erode(mask, mask, cv::Mat(), cv::Point(-1,-1), 1);
+    cv::dilate(mask, mask, cv::Mat(), cv::Point(-1,-1), 1);
+    
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    if (contours.empty()) return Ball{ Point(0,0), Box(0,0,0) };
+
+    auto& c = *std::max_element(contours.begin(), contours.end(),
+        [](const auto& a, const auto& b){ return cv::contourArea(a) < cv::contourArea(b); });
+
+    cv::Point2f ctr; float r;
+    cv::minEnclosingCircle(c, ctr, r);
+
+    return Ball{ Point((int)ctr.x, (int)ctr.y), Box((int)ctr.x, (int)ctr.y, (int)r) };
+
+}
+
+Ball BallDetector::find_ball_hough_transform(Frame& frame) {
     cv::Mat curr(frame.height, frame.width, CV_8UC3,
                 frame.data.data(), frame.row_stride);
-    
-    // int width = widths[VGA];
-    // int height = heights[VGA];
-    // double scale_x = static_cast<double>(frame.width)  / width;
-    // double scale_y = static_cast<double>(frame.height) / height;
-
-    // cv::Mat resized;
-    // cv::resize(curr, resized,
-    //            cv::Size(widths[VGA], heights[VGA]));
 
     cv::Mat gray;
     cv::cvtColor(curr, gray, cv::COLOR_BGR2GRAY);
@@ -37,10 +57,6 @@ Ball BallDetector::find_ball(Frame& frame) {
     int x = circle[0];
     int y = circle[1];
     int radius = circle[2];
-    // int x = static_cast<int>(circle[0] * scale_x);
-    // int y = static_cast<int>(circle[1] * scale_y);
-    // int radius = static_cast<int>(circle[2] * (scale_x + scale_y) / 2.0);
-
     Point center(x, y);
     Box bbox(x, y, radius);
     Ball ball { center, bbox };

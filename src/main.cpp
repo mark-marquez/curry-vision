@@ -14,7 +14,7 @@ using SteadyClock = std::chrono::steady_clock;
 using milliseconds = std::chrono::milliseconds;
 
 constexpr int CAMERA_INDEX = 1;
-constexpr int NUM_FRAMES = 200;
+constexpr int NUM_FRAMES = 500;
 
 std::string get_timestamp() {
     // Current time
@@ -40,33 +40,54 @@ void save_benchmark(int num_frames, int total_time_secs) {
 }
 
 
+// int main() {
+//     VideoStream stream { CAMERA_INDEX, VGA };       
+//     BallDetector detector {};      
+//     LatestFrame latest;
+//     stream.start();
+//     stream.show(true);
+
+//     std::thread find([&]{
+//         while (auto f = latest.get_frame()) { 
+//             auto ball = detector.find_ball(*f); 
+//             latest.set_ball(std::move(ball)); 
+//         }
+//     });
+
+//     auto start = SteadyClock::now();
+//     for (int i = 0; i < NUM_FRAMES; ++i) {
+//         Frame frame = stream.get_frame();
+//         if (frame.width == 0 || frame.height == 0 || frame.data.empty()) continue;
+
+//         latest.set_frame(frame);
+//         if (auto b = latest.try_get_ball()) detector.draw_ball(frame, *b);
+
+//         stream.display(frame);
+//     }
+//     long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(SteadyClock::now() - start).count()) / 1000;
+//     latest.stop();
+//     if (find.joinable()) find.join();
+//     stream.show(false);             
+//     stream.stop();
+//     save_benchmark(NUM_FRAMES, total_time_secs);
+//     return 0;
+// }
+
 int main() {
     VideoStream stream { CAMERA_INDEX, VGA };       
     BallDetector detector {};      
-    LatestFrame latest;
     stream.start();
     stream.show(true);
-
-    std::thread find([&]{
-        while (auto f = latest.get_frame()) { 
-            auto ball = detector.find_ball(*f); 
-            latest.set_ball(std::move(ball)); 
-        }
-    });
 
     auto start = SteadyClock::now();
     for (int i = 0; i < NUM_FRAMES; ++i) {
         Frame frame = stream.get_frame();
         if (frame.width == 0 || frame.height == 0 || frame.data.empty()) continue;
-
-        latest.set_frame(frame);
-        if (auto b = latest.try_get_ball()) detector.draw_ball(frame, *b);
-
+        Ball b = detector.find_ball(frame);
+        detector.draw_ball(frame, b);
         stream.display(frame);
     }
     long long total_time_secs = (std::chrono::duration_cast<std::chrono::milliseconds>(SteadyClock::now() - start).count()) / 1000;
-    latest.stop();
-    if (find.joinable()) find.join();
     stream.show(false);             
     stream.stop();
     save_benchmark(NUM_FRAMES, total_time_secs);

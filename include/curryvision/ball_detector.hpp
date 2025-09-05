@@ -11,6 +11,8 @@ class BallDetector {
 
         Ball find_ball(Frame& frame);
 
+        Ball find_ball_hough_transform(Frame& frame); // depracated version
+
         void draw_ball(Frame& frame, const Ball& ball);
 
     private:
